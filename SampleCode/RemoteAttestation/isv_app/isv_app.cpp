@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
 
         p_msg0_full = (ra_samp_request_header_t*)
             malloc(sizeof(ra_samp_request_header_t)
-            +sizeof(uint32_t));
+            +sizeof(uint32_t)); // ここにepidが入る これが body?
         if (NULL == p_msg0_full)
         {
             ret = -1;
@@ -289,6 +289,7 @@ int main(int argc, char* argv[])
             }
             fprintf(OUTPUT, "\nCall sgx_create_enclave success.");
 
+            // enclave領域とRAServerで鍵を交換するためにPSEなどを設定
             ret = enclave_init_ra(enclave_id,
                                   &status,
                                   false,
@@ -367,6 +368,7 @@ int main(int argc, char* argv[])
 
         if(ret != 0 || !p_msg2_full)
         {
+            // msg2についての処理
             fprintf(OUTPUT, "\nError, ra_network_send_receive for msg1 failed "
                             "[%s].", __FUNCTION__);
             if(VERIFICATION_INDEX_IS_VALID())
@@ -433,6 +435,7 @@ int main(int argc, char* argv[])
 
             if( VERIFICATION_INDEX_IS_VALID() )
             {
+                // msg2のベリファイ
                 // The response should match the precomputed MSG2:
                 ra_samp_response_header_t* precomputed_msg2 =
                     (ra_samp_response_header_t *)
@@ -493,8 +496,8 @@ int main(int argc, char* argv[])
             {
                 ret = sgx_ra_proc_msg2(context,
                                    enclave_id,
-                                   sgx_ra_proc_msg2_trusted,
-                                   sgx_ra_get_msg3_trusted,
+                                   sgx_ra_proc_msg2_trusted, // edger8rの関数へのポインタ
+                                   sgx_ra_get_msg3_trusted, // edger8rの関数へのポインタ
                                    p_msg2_body,
                                    p_msg2_full->size,
                                    &p_msg3,
